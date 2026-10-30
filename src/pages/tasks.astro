@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import TaskPanel from '../components/tasks/TaskPanel.astro';
+import { withBase } from '../consts';
+---
+
+<BaseLayout
+  title="任务界面"
+  description="日期导航 · 聚合视图 · 搜索筛选 · 批量操作 · 统计周报 · 导入导出。数据存浏览器 IndexedDB，完全离线可用。"
+>
+  <div class="container" style="flex: 1; display: flex; flex-direction: column;">
+    <div class="page-head tasks-head">
+      <div class="breadcrumb">
+        <a href={withBase('/')}>自留地</a>
+        <span class="sep">›</span>
+        <span>任务界面</span>
+      </div>
+      <h1>任务清单</h1>
+      <p class="page-head__desc">
+        日期导航 · 搜索筛选 · 批量操作 · 统计周报 · 导入导出 · 回收站
+        <span class="note-inline">数据存 IndexedDB · 完全离线可用</span>
+      </p>
+    </div>
+
+    <TaskPanel />
+  </div>
+</BaseLayout>

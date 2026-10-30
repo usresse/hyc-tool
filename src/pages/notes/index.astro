@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import NoteEditor from '../../components/NoteEditor.tsx';
+import { withBase } from '../../consts';
+---
+
+<BaseLayout
+  title="记事本"
+  description="只存在浏览器 localStorage 里的轻量记事本，支持 Markdown 预览。"
+>
+  <div class="container">
+    <header class="page-head">
+      <nav class="breadcrumb" aria-label="面包屑">
+        <a href={withBase('/')}>首页</a>
+        <span class="sep" aria-hidden="true">/</span>
+        <span>记事本</span>
+      </nav>
+      <h1>记事本</h1>
+      <p class="page-head__desc">
+        随手记一段代码、一个命令、一个踩坑点。没有分类，没有标签，只按更新时间倒序。
+      </p>
+      <p class="page-head__note">
+        <span>localStorage</span>
+        <span>仅此浏览器</span>
+        <span>自动保存</span>
+      </p>
+    </header>
+
+    <div class="tool-body">
+      <NoteEditor client:load />
+    </div>
+  </div>
+</BaseLayout>

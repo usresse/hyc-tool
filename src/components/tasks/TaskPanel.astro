@@ -1,0 +1,255 @@
+---
+import taskCss from '../../assets/tasks/task-app.css?url';
+import taskJs from '../../assets/tasks/task-app.js?url';
+---
+
+<link rel="stylesheet" href={taskCss} />
+
+<div class="app-tasks">
+<div class="app">
+  <header>
+    <h1>📝 待办清单 <span style="font-size:12px;color:var(--muted);font-weight:400;">v3 · 修复版</span></h1>
+  </header>
+
+  <div class="datebar">
+    <div class="date-nav">
+      <button class="date-arrow" id="prevDay" aria-label="前一天">‹</button>
+      <div class="date-current">
+        <div class="d" id="dateLabel" role="button" tabindex="0" aria-label="打开日历跳转"></div>
+        <div class="w" id="weekLabel"></div>
+      </div>
+      <button class="date-arrow" id="nextDay" aria-label="后一天">›</button>
+    </div>
+    <div class="header-rights">
+      <button class="icon-hbtn" id="todayBtn"><span>今天</span></button>
+      <button class="icon-hbtn" id="calBtn" aria-label="日历跳转" title="日历跳转">📅</button>
+      <button class="icon-hbtn" id="statsBtn" aria-label="统计" title="统计">📊</button>
+      <button class="icon-hbtn" id="trashBtn" aria-label="回收站" title="回收站">🗑</button>
+      <button class="icon-hbtn" id="themeBtn" aria-label="外观与设置" title="外观与设置">🎨</button>
+    </div>
+  </div>
+
+  <!-- P1-1 聚合视图 -->
+  <div class="view-tabs" id="viewTabs" role="tablist">
+    <button class="view-tab active" data-view="day" role="tab" aria-selected="true">按天</button>
+    <button class="view-tab" data-view="today" role="tab" aria-selected="false">今天</button>
+    <button class="view-tab" data-view="undone" role="tab" aria-selected="false">未完成</button>
+    <button class="view-tab" data-view="overdue" role="tab" aria-selected="false">逾期</button>
+  </div>
+
+  <div class="searchbar">
+    <input type="search" id="searchInput" placeholder="搜索标题、备注、标签…（快捷键 /）" autocomplete="off" aria-label="搜索任务">
+    <span class="search-hint" id="searchHint">/</span>
+    <button class="search-clear" id="searchClear" aria-label="清除搜索">✕</button>
+  </div>
+
+  <div class="roll-banner" id="rollBanner" role="status">
+    <span id="rollMsg"></span>
+    <button id="rollDismiss">知道了</button>
+  </div>
+
+  <div class="card">
+    <div class="input-area">
+      <div class="input-row">
+        <input type="text" class="input-todo" id="todoInput" placeholder="添加待办：明天3点开会 #工作 !高" autocomplete="off" aria-label="新待办内容">
+        <button class="btn-add" id="addBtn">添加</button>
+      </div>
+      <textarea class="desc-input" id="descInput" placeholder="备注（可选），添加后可再编辑" rows="1" aria-label="备注"></textarea>
+      <button class="add-opt-toggle" id="optToggle" aria-expanded="false">⚙ 更多选项</button>
+      <div class="add-opts" id="addOpts">
+        <label class="opt-datewrap">计划日期
+          <select id="addDateSel" aria-label="日期快捷选择">
+            <option value="today">今天</option>
+            <option value="tomorrow">明天</option>
+            <option value="custom">自定义…</option>
+          </select>
+          <input type="date" id="addDatePicker" aria-label="自定义日期" style="display:none">
+        </label>
+        <!-- P1-3 截止时间 -->
+        <label class="opt-datewrap">截止
+          <input type="date" id="addDueDate" aria-label="截止日期">
+          <input type="time" id="addDueTime" aria-label="截止时间">
+        </label>
+        <select id="addPrio" aria-label="优先级">
+          <option value="1">优先级：中</option>
+          <option value="2">优先级：高</option>
+          <option value="0">优先级：低</option>
+        </select>
+        <input type="text" id="addTags" placeholder="标签，逗号分隔" aria-label="标签">
+        <select id="addRepeat" aria-label="重复">
+          <option value="">不重复</option>
+          <option value="daily">每天</option>
+          <option value="weekday">工作日</option>
+          <option value="weekly">每周</option>
+          <option value="custom">自定义（周几）</option>
+        </select>
+        <!-- P1-6 自定义周几 -->
+        <div class="weekday-picker" id="addWeekdays">
+          <label><input type="checkbox" value="1">一</label>
+          <label><input type="checkbox" value="2">二</label>
+          <label><input type="checkbox" value="3">三</label>
+          <label><input type="checkbox" value="4">四</label>
+          <label><input type="checkbox" value="5">五</label>
+          <label><input type="checkbox" value="6">六</label>
+          <label><input type="checkbox" value="0">日</label>
+        </div>
+        <label class="chk"><input type="checkbox" id="addRemind"> 截止提醒</label>
+      </div>
+      <div class="error-msg" id="errorMsg" role="alert">请输入待办内容</div>
+    </div>
+
+    <div class="toolbar">
+      <div class="filters" role="tablist" aria-label="状态筛选">
+        <button class="filter active" data-filter="all" role="tab" aria-selected="true">全部</button>
+        <button class="filter" data-filter="active" role="tab" aria-selected="false">未完成</button>
+        <button class="filter" data-filter="done" role="tab" aria-selected="false">已完成</button>
+      </div>
+      <div class="toolbar-right">
+        <select id="sortSelect" aria-label="排序方式" title="排序方式">
+          <option value="manual">排序：手动</option>
+          <option value="priority">排序：优先级</option>
+          <option value="due">排序：截止时间</option>
+          <option value="created">排序：创建时间</option>
+        </select>
+        <button class="btn-batch" id="batchBtn" aria-pressed="false">批量</button>
+      </div>
+    </div>
+
+    <div class="toolbar" style="border-top:none;padding-top:6px;">
+      <div class="list-chips" id="listChips" role="group" aria-label="清单筛选"></div>
+      <div class="count" id="count" aria-live="polite"></div>
+    </div>
+
+    <div class="todo-list" id="todoList"></div>
+  </div>
+
+  <footer id="footer">
+    <div class="footer-actions">
+      <button class="fbtn" id="tmplBtn">📋 模板</button>
+      <button class="fbtn" id="ioBtn">⇅ 导入/导出</button>
+      <button class="fbtn" id="settingsBtn">⚙ 设置</button>
+      <button class="fbtn danger" id="clearDoneBtn">清除已完成</button>
+    </div>
+    <div id="footerNote"></div>
+  </footer>
+</div>
+
+<div class="batch-bar" id="batchBar" role="toolbar" aria-label="批量操作">
+  <span class="sel-count" id="selCount">0 项</span>
+  <button id="batchSelectAll">全选</button>
+  <button id="batchDone">标记完成</button>
+  <button id="batchUndone">标记未完成</button>
+  <button id="batchDate">改日期</button>
+  <button class="danger" id="batchDelete">删除</button>
+  <button id="batchExit">退出</button>
+</div>
+
+<div class="overlay" id="themeOverlay" role="dialog" aria-modal="true" aria-label="外观设置">
+  <div class="panel">
+    <button class="panel-close" data-close="themeOverlay" aria-label="关闭">✕</button>
+    <h2>🎨 外观设置</h2>
+    <h3>界面模式</h3>
+    <div class="bg-option" id="darkModeOptions"></div>
+    <h3>界面主色</h3>
+    <div class="swatches" id="colorSwatches"></div>
+    <div class="preset-label" id="colorName"></div>
+    <h3>背景</h3>
+    <div class="bg-option" id="bgOptions"></div>
+    <div class="theme-upload-tip">提示：图片保存到本地 IndexedDB，仅本机可用。</div>
+    <div class="theme-actions">
+      <button class="theme-reset" id="themeReset">恢复默认</button>
+      <button class="theme-close" id="themeClose">完成</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="calOverlay" role="dialog" aria-modal="true" aria-label="日历跳转">
+  <div class="panel" style="max-width:360px;">
+    <button class="panel-close" data-close="calOverlay" aria-label="关闭">✕</button>
+    <h2>📅 跳转日期</h2>
+    <div class="cal-head">
+      <button id="calPrev" aria-label="上个月">‹</button>
+      <div id="calTitle" style="font-size:14px;font-weight:600;"></div>
+      <button id="calNext" aria-label="下个月">›</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+</div>
+
+<div class="overlay" id="statsOverlay" role="dialog" aria-modal="true" aria-label="统计">
+  <div class="panel" style="max-width:520px;">
+    <button class="panel-close" data-close="statsOverlay" aria-label="关闭">✕</button>
+    <h2>📊 统计</h2>
+    <div class="stat-grid" id="statGrid"></div>
+    <h3>近 26 周完成热力图</h3>
+    <div class="heatmap" id="heatmap" aria-hidden="true"></div>
+    <h3>最近 7 天周报</h3>
+    <div class="week-report" id="weekReport"></div>
+  </div>
+</div>
+
+<div class="overlay" id="trashOverlay" role="dialog" aria-modal="true" aria-label="回收站">
+  <div class="panel">
+    <button class="panel-close" data-close="trashOverlay" aria-label="关闭">✕</button>
+    <h2>🗑 回收站</h2>
+    <div class="trash-toolbar">
+      <button class="fbtn danger" id="trashClear">清空回收站</button>
+    </div>
+    <div id="trashList"></div>
+  </div>
+</div>
+
+<div class="overlay" id="tmplOverlay" role="dialog" aria-modal="true" aria-label="模板">
+  <div class="panel">
+    <button class="panel-close" data-close="tmplOverlay" aria-label="关闭">✕</button>
+    <h2>📋 模板</h2>
+    <div class="tmpl-grid" id="tmplGrid"></div>
+  </div>
+</div>
+
+<div class="overlay" id="ioOverlay" role="dialog" aria-modal="true" aria-label="导入导出">
+  <div class="panel">
+    <button class="panel-close" data-close="ioOverlay" aria-label="关闭">✕</button>
+    <h2>⇅ 导入 / 导出</h2>
+    <div class="io-list">
+      <button class="io-btn" id="exportJson">导出 JSON（完整备份）<small>含任务、回收站与设置，可完整恢复</small></button>
+      <button class="io-btn" id="exportCsv">导出 CSV（表格）<small>可用 Excel / 表格软件打开</small></button>
+      <button class="io-btn" id="exportMd">导出 Markdown<small>按日期分组的可读清单</small></button>
+      <button class="io-btn" id="exportIcs">导出 ICS 日历<small>把截止时间同步到日历应用</small></button>
+      <button class="io-btn" id="importJson">导入 JSON<small>导入前自动下载当前数据备份</small></button>
+      <button class="io-btn" id="importCsv">导入 CSV<small>追加到当前日期（标题、备注、日期、优先级）</small></button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="confirmOverlay" role="dialog" aria-modal="true" aria-label="确认">
+  <div class="panel" style="max-width:380px;">
+    <h2 id="confirmTitle">确认操作</h2>
+    <div class="confirm-text" id="confirmText"></div>
+    <div class="confirm-actions">
+      <button class="btn-cancel" id="confirmCancel">取消</button>
+      <button class="btn-save" id="confirmOk">确定</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="settingsOverlay" role="dialog" aria-modal="true" aria-label="设置">
+  <div class="panel" id="settingsPanel"></div>
+</div>
+
+<div class="overlay" id="overdueOverlay" role="dialog" aria-modal="true" aria-label="逾期处理">
+  <div class="panel" style="max-width:420px;">
+    <h2>⏰ 发现逾期任务</h2>
+    <div class="confirm-text" id="overdueText"></div>
+    <div class="confirm-actions" style="flex-wrap:wrap;">
+      <button class="btn-save" id="overdueRoll">全部顺延到今天</button>
+      <button class="btn-cancel" id="overdueKeep">保留原日期</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastWrap" aria-live="polite"></div>
+<div id="liveRegion" aria-live="polite"></div>
+</div>
+
+<script src={taskJs} is:inline></script>

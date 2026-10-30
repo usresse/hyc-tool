@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE, withBase } from '../consts';
+---
+
+<BaseLayout title="关于" description={`关于${SITE.name}这个小站。`}>
+  <div class="container">
+    <header class="page-head">
+      <nav class="breadcrumb" aria-label="面包屑">
+        <a href={withBase('/')}>首页</a>
+        <span class="sep" aria-hidden="true">/</span>
+        <span>关于</span>
+      </nav>
+      <h1>关于</h1>
+    </header>
+
+    <div class="about-grid">
+      <div class="about-text">
+        <p>这里是我自己的自留地，不是简历，也不是对外作品集。</p>
+        <p>放了一些写代码时会反复用到的小工具，和一个只存在浏览器里的记事本。</p>
+        <p>没有后台、没有账号、没有统计；部署是静态的，数据基本只在这台电脑上。</p>
+      </div>
+
+      <aside aria-label="联系方式">
+        <p class="eyebrow">Contact</p>
+        <ul class="about-list" style="margin-top: 16px;">
+          {
+            SITE.contact.map((item) => (
+              <li>
+                <span>{item.label}</span>
+                <a href={item.href} rel="noopener noreferrer">{item.value}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </aside>
+    </div>
+  </div>
+</BaseLayout>

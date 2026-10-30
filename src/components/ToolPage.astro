@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getTool, TOOLS, withBase } from '../consts';
+
+interface Props {
+  slug: string;
+}
+
+const tool = getTool(Astro.props.slug);
+
+if (!tool) {
+  throw new Error(`未在 consts.ts 中注册工具：${Astro.props.slug}`);
+}
+
+const index = TOOLS.indexOf(tool) + 1;
+const num = String(index).padStart(2, '0');
+---
+
+<BaseLayout title={tool.title} description={tool.desc}>
+  <div class="container">
+    <header class="page-head">
+      <nav class="breadcrumb" aria-label="面包屑">
+        <a href={withBase('/tools')}>工具箱</a>
+        <span class="sep" aria-hidden="true">/</span>
+        <span>{num}</span>
+      </nav>
+      <h1>{tool.title}</h1>
+      <p class="page-head__desc">{tool.desc}</p>
+      <p class="page-head__note">
+        <span>不保存输入</span>
+        <span>{tool.note}</span>
+      </p>
+    </header>
+
+    <div class="tool-body">
+      <slot />
+    </div>
+  </div>
+</BaseLayout>

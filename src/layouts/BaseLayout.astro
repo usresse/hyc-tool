@@ -1,0 +1,82 @@
+---
+import '../styles/global.css';
+import { NAV, SITE, withBase } from '../consts';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** false 时不渲染站点头部/页脚（用于全屏包装页） */
+  chrome?: boolean;
+}
+
+const { title, description = SITE.description, chrome = true } = Astro.props;
+
+const nav = NAV.map((item) => ({ ...item, href: withBase(item.href) }));
+const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/';
+
+const isActive = (href: string) => {
+  const normalized = href.replace(/\/+$/, '') || '/';
+  if (normalized === '/') return currentPath === '/';
+  return currentPath === normalized || currentPath.startsWith(`${normalized}/`);
+};
+
+const year = new Date().getFullYear();
+const fullTitle =
+  title === SITE.name ? `${SITE.name} · ${SITE.tagline}` : `${title} · ${SITE.name}`;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f3efe4" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#15130e" />
+    <link rel="icon" href={withBase('/favicon.svg')} type="image/svg+xml" />
+    <title>{fullTitle}</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到正文</a>
+
+    {
+      chrome && (
+        <header class="site-header">
+          <div class="container site-header__inner">
+            <a class="brand" href={withBase('/')} aria-label={`${SITE.name} 首页`}>
+              <span class="brand__stamp" aria-hidden="true">自</span>
+              <span class="brand__text">
+                <span class="brand__name">{SITE.name}</span>
+                <span class="brand__latin">{SITE.latin}</span>
+              </span>
+            </a>
+
+            <nav class="site-nav" aria-label="主导航">
+              {nav.map((item) => (
+                <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
+                  {item.label}
+                </a>
+              ))}
+            </nav>
+          </div>
+        </header>
+      )
+    }
+
+    <main id="main">
+      <slot />
+    </main>
+
+    {
+      chrome && (
+        <footer class="site-footer">
+          <div class="container site-footer__inner">
+            <span>© {year} {SITE.name} · 数据只留在你的浏览器里</span>
+            <span>ASTRO + PREACT · 静态部署</span>
+          </div>
+        </footer>
+      )
+    }
+  </body>
+</html>

@@ -1,0 +1,90 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ToolCard from '../components/ToolCard.astro';
+import { SITE, TOOLS, ENTRIES, withBase } from '../consts';
+
+const pad = (n: number) => String(n).padStart(2, '0');
+---
+
+<BaseLayout title={SITE.name}>
+  <section class="hero">
+    <div class="container hero__grid">
+      <div>
+        <p class="eyebrow reveal">Personal Workbench · 自用</p>
+        <h1 class="reveal" style="animation-delay: 60ms">自留地<em>。</em></h1>
+        <p class="hero__lede reveal" style="animation-delay: 120ms">
+          写代码时随手会打开的地方。<code>/tools</code> 里是一组不保存输入的小工具，<code>/notes</code>
+          里是只存在这台浏览器里的笔记，还有一张原样托管的静态任务页。
+        </p>
+      </div>
+
+      <aside class="hero__meta reveal" style="animation-delay: 180ms" aria-label="站点概要">
+        <dl>
+          <div><dt>Tools</dt><dd>06</dd></div>
+          <div><dt>Notes</dt><dd>localStorage</dd></div>
+          <div><dt>Backend</dt><dd>None</dd></div>
+          <div><dt>Deploy</dt><dd>Static</dd></div>
+        </dl>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section__head">
+        <div class="section__title">
+          <span class="section__num">01</span>
+          <h2>工具箱</h2>
+        </div>
+        <a class="section__link" href={withBase('/tools')}>全部工具 →</a>
+      </div>
+
+      <div class="grid">
+        {
+          TOOLS.map((tool, i) => (
+            <ToolCard
+              href={withBase(`/tools/${tool.slug}`)}
+              title={tool.title}
+              desc={tool.desc}
+              emoji={tool.emoji}
+              num={pad(i + 1)}
+              meta="Tool"
+            />
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section__head">
+        <div class="section__title">
+          <span class="section__num">02</span>
+          <h2>入口</h2>
+        </div>
+        <span class="section__link" style="border-bottom: 0; cursor: default;">Not a blog</span>
+      </div>
+
+      <div class="grid">
+        {
+          ENTRIES.map((entry, i) => (
+            <ToolCard
+              href={withBase(entry.path)}
+              title={entry.title}
+              desc={entry.desc}
+              emoji={entry.emoji}
+              num={pad(i + 1)}
+              meta={entry.meta}
+              variant="entry"
+            />
+          ))
+        }
+      </div>
+
+      <p class="hint" style="margin-top: 18px; max-width: 70ch;">
+        首页不写自我介绍。工具用完即走，输入不落盘；需要留下来的东西，放记事本。
+      </p>
+    </div>
+  </section>
+</BaseLayout>

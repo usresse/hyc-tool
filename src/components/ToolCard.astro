@@ -1,0 +1,26 @@
+---
+interface Props {
+  href: string;
+  title: string;
+  desc: string;
+  emoji: string;
+  num?: string;
+  meta?: string;
+  variant?: 'tool' | 'entry';
+}
+
+const { href, title, desc, emoji, num, meta = 'OPEN', variant = 'tool' } = Astro.props;
+---
+
+<a class:list={['card', variant === 'entry' && 'card--entry']} href={href}>
+  <span class="card__top">
+    <span class="card__icon" aria-hidden="true">{emoji}</span>
+    {num && <span class="card__num">{num}</span>}
+  </span>
+  <h3 class="card__title">{title}</h3>
+  <span class="card__desc">{desc}</span>
+  <span class="card__foot">
+    <span>{meta}</span>
+    <span class="card__arrow" aria-hidden="true">→</span>
+  </span>
+</a>
