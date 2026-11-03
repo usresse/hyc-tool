@@ -25,7 +25,6 @@ import taskJs from '../../assets/tasks/task-app.js?url';
       <button class="icon-hbtn" id="calBtn" aria-label="日历跳转" title="日历跳转">📅</button>
       <button class="icon-hbtn" id="statsBtn" aria-label="统计" title="统计">📊</button>
       <button class="icon-hbtn" id="trashBtn" aria-label="回收站" title="回收站">🗑</button>
-      <button class="icon-hbtn" id="themeBtn" aria-label="外观与设置" title="外观与设置">🎨</button>
     </div>
   </div>
 
@@ -142,25 +141,6 @@ import taskJs from '../../assets/tasks/task-app.js?url';
   <button id="batchDate">改日期</button>
   <button class="danger" id="batchDelete">删除</button>
   <button id="batchExit">退出</button>
-</div>
-
-<div class="overlay" id="themeOverlay" role="dialog" aria-modal="true" aria-label="外观设置">
-  <div class="panel">
-    <button class="panel-close" data-close="themeOverlay" aria-label="关闭">✕</button>
-    <h2>🎨 外观设置</h2>
-    <h3>界面模式</h3>
-    <div class="bg-option" id="darkModeOptions"></div>
-    <h3>界面主色</h3>
-    <div class="swatches" id="colorSwatches"></div>
-    <div class="preset-label" id="colorName"></div>
-    <h3>背景</h3>
-    <div class="bg-option" id="bgOptions"></div>
-    <div class="theme-upload-tip">提示：图片保存到本地 IndexedDB，仅本机可用。</div>
-    <div class="theme-actions">
-      <button class="theme-reset" id="themeReset">恢复默认</button>
-      <button class="theme-close" id="themeClose">完成</button>
-    </div>
-  </div>
 </div>
 
 <div class="overlay" id="calOverlay" role="dialog" aria-modal="true" aria-label="日历跳转">

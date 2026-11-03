@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import ThemePanel from '../components/ThemePanel.astro';
 import { NAV, SITE, withBase } from '../consts';
 
 interface Props {
@@ -36,6 +37,34 @@ const fullTitle =
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#15130e" />
     <link rel="icon" href={withBase('/favicon.svg')} type="image/svg+xml" />
     <title>{fullTitle}</title>
+    <!-- 首屏预热：从本地缓存直接恢复主题，避免闪烁（正式逻辑见页面底部 theme.js） -->
+    <script is:inline>
+      (function () {
+        var d = document.documentElement;
+        var t = null;
+        try { t = JSON.parse(localStorage.getItem('site:theme:resolved') || 'null'); } catch (e) {}
+        try {
+          if (!t) {
+            var s = JSON.parse(localStorage.getItem('site:theme:v1') || '{}');
+            var m = s.mode || 'auto';
+            var dark = m === 'dark' || (m === 'auto' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            d.setAttribute('data-theme', dark ? 'dark' : 'light');
+          }
+        } catch (e) {}
+        if (t) {
+          d.setAttribute('data-theme', t.theme || 'light');
+          if (t.accent) d.style.setProperty('--accent', t.accent);
+          if (t.ink) d.style.setProperty('--accent-ink', t.ink);
+          if (t.soft) d.style.setProperty('--accent-soft', t.soft);
+          if (t.bg) {
+            d.style.setProperty('--page-bg', t.bg);
+            d.style.setProperty('--page-bg-size', t.bgSize || 'auto');
+            d.style.setProperty('--page-scrim', t.scrim || 'none');
+          }
+        }
+        d.style.colorScheme = (d.getAttribute('data-theme') === 'dark') ? 'dark' : 'light';
+      })();
+    </script>
   </head>
   <body>
     <a class="skip-link" href="#main">跳到正文</a>
@@ -52,13 +81,24 @@ const fullTitle =
               </span>
             </a>
 
-            <nav class="site-nav" aria-label="主导航">
-              {nav.map((item) => (
-                <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
-                  {item.label}
-                </a>
-              ))}
-            </nav>
+            <div class="site-header__end">
+              <nav class="site-nav" aria-label="主导航">
+                {nav.map((item) => (
+                  <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
+                    {item.label}
+                  </a>
+                ))}
+              </nav>
+              <button
+                type="button"
+                class="theme-trigger"
+                data-theme-open
+                aria-label="外观设置"
+                title="外观设置"
+              >
+                🎨
+              </button>
+            </div>
           </div>
         </header>
       )
@@ -78,5 +118,11 @@ const fullTitle =
         </footer>
       )
     }
+
+    <ThemePanel />
+
+    <script>
+      import '../assets/theme.js';
+    </script>
   </body>
 </html>

@@ -17,23 +17,6 @@
   const APP_ID = 'todo-app';
   const TRASH_RETENTION_DAYS = 30;
 
-  const PALETTES = [
-    { id: 'pine',   name: '松针绿', accent: '#3f6d4a', dark: '#2f5138', light: '#5d8a68', ink: '#2e3a2f', bg: '#f6f1e6' },
-    { id: 'navy',   name: '海盐蓝', accent: '#3b6ea5', dark: '#2c5279', light: '#5d8fc2', ink: '#24364a', bg: '#eff3fa' },
-    { id: 'violet', name: '紫藤',   accent: '#7a5ea8', dark: '#5d4687', light: '#9a80c4', ink: '#342b45', bg: '#f4effa' },
-    { id: 'amber',  name: '暖橙',   accent: '#c97b3d', dark: '#a55f2b', light: '#dd9a66', ink: '#3d2f24', bg: '#faf1e7' },
-    { id: 'rose',   name: '玫瑰',   accent: '#c25b76', dark: '#9e4560', light: '#d88399', ink: '#432b32', bg: '#faf0f2' },
-    { id: 'slate',  name: '石墨',   accent: '#3a3a44', dark: '#292932', light: '#5b5b66', ink: '#2c2c33', bg: '#f0f0f2' }
-  ];
-  const BG_PRESETS = [
-    { id: 'paper',  name: '暖纸白', css: 'linear-gradient(180deg,#fffdf4,#f6f1e6)' },
-    { id: 'cream',  name: '奶油米', css: 'linear-gradient(160deg,#fbf5e8,#f0e6d2)' },
-    { id: 'mist',   name: '晨雾蓝', css: 'linear-gradient(160deg,#eef3fb,#dbe6f4)' },
-    { id: 'blush',  name: '柔粉',   css: 'linear-gradient(160deg,#fdf0f3,#f5dde5)' },
-    { id: 'mint',   name: '薄荷',   css: 'linear-gradient(160deg,#eef8f0,#d9ecd8)' },
-    { id: 'dusk',   name: '暮霭紫', css: 'linear-gradient(160deg,#f1ecfb,#dcd2ef)' },
-    { id: 'night',  name: '子夜蓝', css: 'linear-gradient(160deg,#1f2c3f,#0f1720)', darkInk: true }
-  ];
   const TAG_PRESETS = ['工作', '生活', '学习', '购物', '健康'];
   const WEEK = ['日', '一', '二', '三', '四', '五', '六'];
   const PRIO_NAME = { 0: '低', 1: '中', 2: '高' };
@@ -372,112 +355,9 @@
   function closeConfirm() { document.getElementById('confirmOverlay').classList.remove('show'); confirmCallback = null; }
 
   /* 8. 主题 */
-  function paletteById(id) { for (let i = 0; i < PALETTES.length; i++) if (PALETTES[i].id === id) return PALETTES[i]; return PALETTES[0]; }
-  function bgById(id) { for (let i = 0; i < BG_PRESETS.length; i++) if (BG_PRESETS[i].id === id) return BG_PRESETS[i]; return BG_PRESETS[0]; }
-  function effectiveDark() {
-    const d = settings.theme.dark;
-    if (d === 'dark') return true;
-    if (d === 'light') return false;
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  }
-  function applyTheme() {
-    return Promise.resolve().then(function () {
-      const pal = paletteById(settings.theme.paletteId);
-      // 关键改造：主题变量只写入 .app-tasks 作用域，绝不污染全站 token
-      const rootEl = document.querySelector('.app-tasks') || document.documentElement;
-      const root = rootEl.style;
-      ['--bg', '--ink', '--paper', '--line', '--muted'].forEach(function (k) { root.removeProperty(k); });
-      root.setProperty('--accent', pal.accent);
-      root.setProperty('--accent-dark', pal.dark);
-      root.setProperty('--accent-light', pal.light);
+  // 外观设置已上移到全站（导航栏 🎨），任务面板直接继承站点 token
+  function applyTheme() { return Promise.resolve(); }
 
-      const doDark = function () {
-        // 深色由站点 prefers-color-scheme 统一控制；仅在应用作用域补充调色板
-        if (effectiveDark()) {
-          root.setProperty('--accent', pal.accent);
-          root.setProperty('--accent-dark', pal.light);
-          root.setProperty('--accent-light', pal.light);
-        }
-        if (typeof renderThemePanel === 'function') renderThemePanel();
-      };
-      // 背景交给站点，不再接管整页背景图
-      doDark();
-    });
-  }
-  function saveBgImage(dataUrl) {
-    return idbPut(STORE_IMAGES, { id: 'bg-image', dataUrl: dataUrl, updatedAt: Date.now() })
-      .then(function () { settings.theme.bgImageId = 'bg-image'; settings.theme.bgMode = 'image'; saveSettings(); return applyTheme(); })
-      .catch(function (e) { toast('图片保存失败：' + e.message, 'error'); });
-  }
-  function renderThemePanel() {
-    const colorSwatches = document.getElementById('colorSwatches');
-    if (!colorSwatches) return;
-    const colorName = document.getElementById('colorName');
-    const bgOptions = document.getElementById('bgOptions');
-    colorSwatches.innerHTML = '';
-    PALETTES.forEach(function (p) {
-      const s = document.createElement('div');
-      s.className = 'swatch' + (settings.theme.paletteId === p.id ? ' active' : '');
-      s.style.background = p.accent;
-      s.title = p.name;
-      s.addEventListener('click', function () { settings.theme.paletteId = p.id; saveSettings(); applyTheme(); });
-      colorSwatches.appendChild(s);
-    });
-    colorName.textContent = '当前主色：' + paletteById(settings.theme.paletteId).name;
-
-    const darkOptions = document.getElementById('darkModeOptions');
-    darkOptions.innerHTML = '';
-    [
-      { id: 'auto', name: '跟随系统', icon: '🌓' },
-      { id: 'light', name: '始终浅色', icon: '☀️' },
-      { id: 'dark', name: '始终深色', icon: '🌙' }
-    ].forEach(function (d) {
-      const label = document.createElement('label');
-      label.className = 'bg-choice' + (settings.theme.dark === d.id ? ' active' : '');
-      label.innerHTML = '<span class="radio"></span><span>' + d.icon + ' ' + d.name + '</span>';
-      label.addEventListener('click', function () { settings.theme.dark = d.id; saveSettings(); applyTheme(); });
-      darkOptions.appendChild(label);
-    });
-
-    bgOptions.innerHTML = '';
-    BG_PRESETS.forEach(function (b) {
-      const label = document.createElement('label');
-      label.className = 'bg-choice' + (settings.theme.bgMode === 'color' && settings.theme.bgId === b.id ? ' active' : '');
-      label.innerHTML = '<span class="radio"></span><span>' + b.name + '</span>';
-      label.style.background = b.css;
-      label.style.color = b.darkInk ? '#e8edf2' : '#333';
-      label.addEventListener('click', function () { settings.theme.bgMode = 'color'; settings.theme.bgId = b.id; settings.theme.bgImageId = null; saveSettings(); applyTheme(); });
-      bgOptions.appendChild(label);
-    });
-    const custom = document.createElement('label');
-    custom.className = 'bg-choice' + (settings.theme.bgMode === 'image' ? ' active' : '');
-    custom.innerHTML = '<span class="radio"></span><span>📷 使用本地图片</span>';
-    custom.addEventListener('click', function () {
-      const input = document.createElement('input');
-      input.type = 'file'; input.accept = 'image/*';
-      input.addEventListener('change', function () {
-        const file = input.files && input.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          const img = new Image();
-          img.onload = function () {
-            const canvas = document.createElement('canvas');
-            const maxW = 1600;
-            const scale = Math.min(1, maxW / img.width);
-            canvas.width = Math.round(img.width * scale);
-            canvas.height = Math.round(img.height * scale);
-            canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-            saveBgImage(canvas.toDataURL('image/jpeg', 0.8)).then(function () { toast('背景图片已更新'); });
-          };
-          img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-      });
-      input.click();
-    });
-    bgOptions.appendChild(custom);
-  }
 
   /* 9. 列表渲染 */
   function byOrder(a, b) { return (a.order || 0) - (b.order || 0); }
@@ -1856,12 +1736,7 @@
     $('batchDate').addEventListener('click', batchChangeDate);
     $('batchDelete').addEventListener('click', batchDelete);
 
-    $('themeBtn').addEventListener('click', function () { renderThemePanel(); $('themeOverlay').classList.add('show'); focusPanel($('themeOverlay')); });
-    $('themeClose').addEventListener('click', function () { closeOverlay($('themeOverlay')); });
-    $('themeReset').addEventListener('click', function () {
-      settings.theme = { paletteId: 'pine', bgMode: 'color', bgId: 'paper', bgImageId: null, dark: 'auto' };
-      saveSettings(); applyTheme();
-    });
+    // 外观设置已上移到全站（站点导航栏 🎨），此处不再绑定
 
     $('statsBtn').addEventListener('click', openStats);
     $('trashBtn').addEventListener('click', openTrash);

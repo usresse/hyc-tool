@@ -38,7 +38,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --paper: #15130e;
     --paper-2: #1c1913;
     --surface: #1e1a14;
@@ -61,6 +61,29 @@
   }
 }
 
+/* 手动「始终深色」：即使系统是浅色也生效 */
+html[data-theme='dark'] {
+  --paper: #15130e;
+  --paper-2: #1c1913;
+  --surface: #1e1a14;
+  --surface-2: #241f18;
+  --ink: #ece5d5;
+  --ink-soft: #d3cab7;
+  --muted: #a29a86;
+  --line: #352f25;
+  --line-strong: #544b3b;
+  --accent: #e07154;
+  --accent-ink: #f08b71;
+  --accent-soft: #3a221a;
+  --green: #7fb494;
+  --code-bg: #0e0d09;
+  --code-ink: #e7dfcd;
+  --code-line: #2b2619;
+  --dot: rgba(236, 229, 213, 0.07);
+
+  color-scheme: dark;
+}
+
 *,
 *::before,
 *::after {
@@ -81,8 +104,10 @@ body {
   line-height: 1.65;
   color: var(--ink);
   background-color: var(--paper);
-  background-image: radial-gradient(var(--dot) 1px, transparent 1px);
-  background-size: 22px 22px;
+  background-image: var(--page-scrim, none), var(--page-bg, none),
+    radial-gradient(var(--dot) 1px, transparent 1px);
+  background-size: auto, var(--page-bg-size, auto), 22px 22px;
+  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -215,6 +240,36 @@ select {
   letter-spacing: 0.28em;
   color: var(--muted);
   text-transform: uppercase;
+}
+
+.site-header__end {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.theme-trigger {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.theme-trigger:hover {
+  transform: translate(-1px, -1px);
+  border-color: var(--ink);
+  background: var(--surface-2);
 }
 
 .site-nav {
@@ -896,8 +951,9 @@ select.input {
 }
 
 .btn:hover {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff5ec;
 }
 
 .btn:active {
@@ -905,13 +961,14 @@ select.input {
 }
 
 .btn--primary {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff5ec;
 }
 
 .btn--primary:hover {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--accent-ink);
+  border-color: var(--accent-ink);
   color: #fff5ec;
 }
 
@@ -976,9 +1033,9 @@ select.input {
 }
 
 .chip:has(input:checked) {
-  border-color: var(--ink);
-  background: var(--ink);
-  color: var(--paper);
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff5ec;
 }
 
 .chip:has(input:focus-visible) {
@@ -1022,8 +1079,8 @@ select.input {
 }
 
 .segmented button[aria-pressed='true'] {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--accent);
+  color: #fff5ec;
 }
 
 .code {
@@ -1689,8 +1746,13 @@ mark {
     padding: 12px 0 0;
   }
 
+  .site-header__end {
+    width: 100%;
+  }
+
   .site-nav {
     width: 100%;
+    flex: 1 1 auto;
     padding-bottom: 4px;
   }
 
@@ -1792,4 +1854,284 @@ mark {
   .frame-bar__title {
     display: none;
   }
+}
+
+/* ============================================================
+   全站外观设置面板
+   ============================================================ */
+
+.theme-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(29, 26, 19, 0.42);
+}
+
+.theme-overlay.show {
+  display: flex;
+}
+
+.theme-panel {
+  width: min(520px, 100%);
+  max-height: 86vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  box-shadow: var(--shadow-hard);
+}
+
+.theme-panel__head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px 12px;
+  background: var(--surface);
+  border-bottom: 1px dashed var(--line);
+}
+
+.theme-panel__head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--accent-ink);
+}
+
+.theme-close {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  color: var(--ink-soft);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.theme-close:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.theme-panel__body {
+  padding: 4px 18px 0;
+}
+
+.theme-h3 {
+  margin: 16px 0 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.theme-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.theme-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--ink-soft);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.theme-opt:hover {
+  border-color: var(--ink);
+}
+
+.theme-opt.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+.theme-radio {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+}
+
+.theme-opt.active .theme-radio {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.theme-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.theme-swatch {
+  width: 34px;
+  height: 34px;
+  padding: 3px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.theme-swatch span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--sw);
+}
+
+.theme-swatch.active {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--ink);
+}
+
+.theme-note {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.theme-bgs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.theme-bg {
+  position: relative;
+  height: 54px;
+  padding: 0;
+  overflow: hidden;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.theme-bg span {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 2px 4px;
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--ink);
+  background: rgba(251, 248, 239, 0.84);
+  text-align: center;
+}
+
+html[data-theme='dark'] .theme-bg span {
+  color: #ece5d5;
+  background: rgba(30, 26, 20, 0.84);
+}
+
+.theme-bg.active {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+.theme-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 18px 0;
+}
+
+.theme-reset,
+.theme-done {
+  padding: 8px 16px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.theme-reset {
+  color: var(--ink-soft);
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+
+.theme-reset:hover {
+  border-color: var(--ink);
+}
+
+.theme-done {
+  color: #fff5ec;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+.theme-done:hover {
+  background: var(--accent-ink);
+  border-color: var(--accent-ink);
+}
+
+.theme-panel__foot {
+  margin: 0;
+  padding: 0 18px 14px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+@media (max-width: 520px) {
+  .theme-bgs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* 背景图为照片时，站点头部加厚底衬，避免导航文字压在图上 */
+html[data-bg='image'] .site-header {
+  background: color-mix(in srgb, var(--paper) 96%, transparent);
+}
+
+/* 遮罩浓度滑杆 */
+.theme-scrim {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.theme-scrim input[type='range'] {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.theme-scrim output {
+  min-width: 42px;
+  text-align: right;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
 }
