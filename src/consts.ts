@@ -155,6 +155,7 @@ export interface NavItem {
 export const NAV: NavItem[] = [
   { href: '/', label: '首页' },
   { href: '/tools', label: '工具箱' },
+  { href: '/market', label: '股票工具' },
   ...ENTRIES.map((entry) => ({ href: entry.path, label: entry.title })),
 ];
 

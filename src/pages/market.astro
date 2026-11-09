@@ -1,0 +1,517 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { withBase } from '../consts';
+
+type Tone = 'trade' | 'rest' | 'idle';
+
+interface Phase {
+  start: string;
+  end: string;
+  name: string;
+  desc: string;
+  tone: Tone;
+  /** 状态卡上显示的名称与提示 */
+  title: string;
+  action: string;
+  warn?: boolean;
+}
+
+const PHASES: Phase[] = [
+  {
+    start: '09:15',
+    end: '09:20',
+    name: '开盘集合竞价（前半段）',
+    desc: '可以挂单，也可以撤单。',
+    tone: 'trade',
+    title: '开盘集合竞价',
+    action: '可以挂单，可以撤单',
+  },
+  {
+    start: '09:20',
+    end: '09:25',
+    name: '开盘集合竞价（后半段）',
+    desc: '只能挂单，绝对不能撤单！',
+    tone: 'trade',
+    title: '开盘集合竞价',
+    action: '⚠ 不可撤单',
+    warn: true,
+  },
+  {
+    start: '09:25',
+    end: '09:30',
+    name: '静默期',
+    desc: '产生开盘价，系统不处理挂单和撤单。',
+    tone: 'idle',
+    title: '静默期',
+    action: '系统暂停处理申报',
+  },
+  {
+    start: '09:30',
+    end: '11:30',
+    name: '上午连续竞价',
+    desc: '正常买卖，价格优先、时间优先。',
+    tone: 'trade',
+    title: '上午连续竞价',
+    action: '正常买卖，自由交易',
+  },
+  {
+    start: '11:30',
+    end: '13:00',
+    name: '午间休市',
+    desc: '无法交易，可以看行情、做计划。',
+    tone: 'rest',
+    title: '午间休市',
+    action: '无法交易，好好吃饭',
+  },
+  {
+    start: '13:00',
+    end: '14:57',
+    name: '下午连续竞价',
+    desc: '正常买卖，随时可以撤单。',
+    tone: 'trade',
+    title: '下午连续竞价',
+    action: '正常买卖，自由交易',
+  },
+  {
+    start: '14:57',
+    end: '15:00',
+    name: '收盘集合竞价',
+    desc: '只能挂单，绝对不能撤单！',
+    tone: 'trade',
+    title: '收盘集合竞价',
+    action: '⚠ 不可撤单',
+    warn: true,
+  },
+  {
+    start: '15:05',
+    end: '15:30',
+    name: '盘后固定价格交易',
+    desc: 'ETF 专享，按收盘价成交，适合定投。',
+    tone: 'trade',
+    title: '盘后固定价格交易',
+    action: '按收盘价买卖 ETF',
+  },
+];
+
+const toMin = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+---
+
+<BaseLayout
+  title="A股交易时段"
+  description="按北京时间实时判断 A 股所处的交易阶段：集合竞价、连续竞价、午间休市、盘后固定价格交易，附完整时间轴。"
+>
+  <div class="container">
+    <header class="page-head">
+      <nav class="breadcrumb" aria-label="面包屑">
+        <a href={withBase('/')}>自留地</a>
+        <span class="sep" aria-hidden="true">/</span>
+        <span>交易时段</span>
+      </nav>
+      <h1>A股交易时段</h1>
+      <p class="page-head__desc">
+        按北京时间判断此刻处在哪个交易阶段，并标出当前时段。集合竞价的后半段不能撤单，两个红色提示要记牢。
+      </p>
+      <p class="page-head__note">
+        <span>Asia/Shanghai</span>
+        <span>每秒刷新</span>
+        <span>T+1</span>
+      </p>
+    </header>
+
+    <div class="tool-body">
+      <div class="market">
+        <section class="market-status" data-market-status data-tone="idle" aria-live="polite">
+          <p class="market-status__eyebrow">Beijing Time · 北京时间</p>
+          <p class="market-status__clock" data-market-clock>--:--:--</p>
+          <p class="market-status__date" data-market-date>正在读取时间…</p>
+          <p class="market-status__title" data-market-title>加载中</p>
+          <p class="market-status__action" data-market-action>请稍候…</p>
+        </section>
+
+        <section class="market-timeline" aria-label="今日交易时间轴">
+          <div class="market-timeline__head">
+            <h2 class="market-timeline__title">今日交易时间轴</h2>
+            <p class="market-timeline__legend">
+              <span class="is-trade">交易</span>
+              <span class="is-rest">休市</span>
+              <span class="is-idle">静默</span>
+            </p>
+          </div>
+
+          <ol class="market-list">
+            {
+              PHASES.map((phase) => (
+                <li
+                  class="market-item"
+                  data-phase
+                  data-tone={phase.tone}
+                  data-start={toMin(phase.start)}
+                  data-end={toMin(phase.end)}
+                  data-title={phase.title}
+                  data-action={phase.action}
+                >
+                  <span class="market-item__time">
+                    {phase.start} – {phase.end}
+                  </span>
+                  <span class="market-item__body">
+                    <span class="market-item__name">{phase.name}</span>
+                    <span class="market-item__desc">
+                      {phase.warn ? (
+                        <span class="market-item__warn">{phase.desc}</span>
+                      ) : (
+                        phase.desc
+                      )}
+                    </span>
+                  </span>
+                  <span class="market-item__flag" aria-hidden="true" />
+                </li>
+              ))
+            }
+          </ol>
+        </section>
+      </div>
+
+      <p class="hint market-foot">
+        时间固定按北京时间（UTC+8）计算，与设备所在时区无关。法定节假日休市需另行参考交易所日历；A 股实行
+        T+1，当日买入的股票下一交易日才能卖出。
+      </p>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  const card = document.querySelector<HTMLElement>('[data-market-status]');
+  const clockEl = document.querySelector<HTMLElement>('[data-market-clock]');
+  const dateEl = document.querySelector<HTMLElement>('[data-market-date]');
+  const titleEl = document.querySelector<HTMLElement>('[data-market-title]');
+  const actionEl = document.querySelector<HTMLElement>('[data-market-action]');
+  const items = Array.from(document.querySelectorAll<HTMLElement>('[data-phase]'));
+
+  const TZ = 'Asia/Shanghai';
+  const dateFmt = new Intl.DateTimeFormat('zh-CN', {
+    timeZone: TZ,
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long',
+  });
+  const timeFmt = new Intl.DateTimeFormat('en-GB', {
+    timeZone: TZ,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+  const weekdayFmt = new Intl.DateTimeFormat('en-US', { timeZone: TZ, weekday: 'short' });
+  const WEEKDAY: Record<string, number> = {
+    Sun: 0,
+    Mon: 1,
+    Tue: 2,
+    Wed: 3,
+    Thu: 4,
+    Fri: 5,
+    Sat: 6,
+  };
+
+  function setStatus(title: string, action: string, tone: string) {
+    if (titleEl) titleEl.textContent = title;
+    if (actionEl) actionEl.textContent = action;
+    card?.setAttribute('data-tone', tone);
+  }
+
+  function tick() {
+    const now = new Date();
+    const [h, m, s] = timeFmt.format(now).split(':').map(Number);
+    if (clockEl) clockEl.textContent = [h, m, s].map((n) => String(n).padStart(2, '0')).join(':');
+    if (dateEl) dateEl.textContent = dateFmt.format(now);
+
+    const day = WEEKDAY[weekdayFmt.format(now)] ?? 0;
+    const minutes = h * 60 + m;
+
+    items.forEach((el) => el.classList.remove('is-active'));
+
+    if (day === 0 || day === 6) {
+      setStatus('周末休市', '好好休息，下周再战', 'idle');
+      return;
+    }
+
+    const active = items.find(
+      (el) => minutes >= Number(el.dataset.start) && minutes < Number(el.dataset.end),
+    );
+
+    if (active) {
+      active.classList.add('is-active');
+      setStatus(
+        active.dataset.title ?? '',
+        active.dataset.action ?? '',
+        active.dataset.tone ?? 'idle',
+      );
+      return;
+    }
+
+    if (minutes < 9 * 60 + 15) {
+      setStatus('盘前准备', '等待 09:15 开启集合竞价', 'idle');
+    } else if (minutes >= 15 * 60 && minutes < 15 * 60 + 5) {
+      setStatus('已收盘', '等待 15:05 盘后固定价格交易', 'idle');
+    } else if (minutes >= 15 * 60 + 30) {
+      setStatus('已收盘', '今日交易已全部结束', 'idle');
+    } else {
+      setStatus('非交易时段', '当前无法交易', 'idle');
+    }
+  }
+
+  tick();
+  setInterval(tick, 1000);
+</script>
+
+<style>
+  .market {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 22px;
+    align-items: start;
+  }
+
+  .market-status {
+    --tone: var(--line-strong);
+    position: sticky;
+    top: 24px;
+    padding: 30px 26px 26px;
+    border: 1px solid var(--line);
+    border-top: 4px solid var(--tone);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-hard);
+    transition:
+      border-color 0.3s ease,
+      background 0.3s ease;
+  }
+
+  .market-status[data-tone='trade'] {
+    --tone: var(--accent);
+  }
+
+  .market-status[data-tone='rest'] {
+    --tone: var(--green);
+  }
+
+  .market-status[data-tone='idle'] {
+    --tone: var(--line-strong);
+  }
+
+  .market-status__eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .market-status__eyebrow::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--tone);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tone) 18%, transparent);
+    transition: background 0.3s ease;
+  }
+
+  .market-status__clock {
+    margin-top: 16px;
+    font-family: var(--font-mono);
+    font-size: clamp(2.4rem, 5.5vw, 3.6rem);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    color: var(--ink);
+  }
+
+  .market-status__date {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .market-status__title {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--line);
+    font-family: var(--font-display);
+    font-size: 1.65rem;
+    line-height: 1.25;
+    color: var(--tone);
+    transition: color 0.3s ease;
+  }
+
+  .market-status__action {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 10px;
+    padding: 5px 12px;
+    border: 1px solid color-mix(in srgb, var(--tone) 45%, var(--line));
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--tone) 10%, transparent);
+    font-size: 12.5px;
+    color: var(--ink-soft);
+  }
+
+  .market-timeline {
+    padding: 22px 22px 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+
+  .market-timeline__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .market-timeline__title {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 400;
+  }
+
+  .market-timeline__legend {
+    display: flex;
+    gap: 14px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+  }
+
+  .market-timeline__legend span::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    vertical-align: 1px;
+  }
+
+  .market-timeline__legend .is-trade {
+    color: var(--accent);
+  }
+
+  .market-timeline__legend .is-rest {
+    color: var(--green);
+  }
+
+  .market-timeline__legend .is-idle {
+    color: var(--muted);
+  }
+
+  .market-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .market-item {
+    --item-tone: var(--muted);
+    display: grid;
+    grid-template-columns: 118px minmax(0, 1fr) 10px;
+    gap: 14px;
+    align-items: start;
+    padding: 14px 10px;
+    border-bottom: 1px dashed var(--line);
+    border-left: 2px solid transparent;
+    transition:
+      background 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  .market-item:last-child {
+    border-bottom: 0;
+  }
+
+  .market-item[data-tone='trade'] {
+    --item-tone: var(--accent);
+  }
+
+  .market-item[data-tone='rest'] {
+    --item-tone: var(--green);
+  }
+
+  .market-item.is-active {
+    border-left-color: var(--item-tone);
+    background: color-mix(in srgb, var(--item-tone) 8%, transparent);
+  }
+
+  .market-item__time {
+    padding-top: 2px;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    font-variant-numeric: tabular-nums;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .market-item.is-active .market-item__time {
+    color: var(--item-tone);
+  }
+
+  .market-item__name {
+    display: block;
+    font-size: 14.5px;
+    color: var(--ink);
+  }
+
+  .market-item__desc {
+    display: block;
+    margin-top: 4px;
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--muted);
+  }
+
+  .market-item__warn {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .market-item__flag {
+    width: 8px;
+    height: 8px;
+    margin-top: 5px;
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+  }
+
+  .market-item.is-active .market-item__flag {
+    border-color: var(--item-tone);
+    background: var(--item-tone);
+  }
+
+  .market-foot {
+    max-width: 78ch;
+    margin-top: 18px;
+  }
+
+  @media (max-width: 900px) {
+    .market {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .market-status {
+      position: static;
+    }
+
+    .market-item {
+      grid-template-columns: 96px minmax(0, 1fr) 10px;
+      gap: 10px;
+    }
+  }
+</style>
